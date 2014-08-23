@@ -38,9 +38,7 @@ class MineshaftFinder(object):
         data = self.driver.metrics(paths, start_time, end_time)
         if data:
             # Collect all the series into their own dict
-            series = {}
-            for key, value in data.iteritems():
-                series[key] = value['series']
+            series = {key: value['series'] for key, value in data.iteritems()}
 
             # Extract the time info out of the first key
             src = data.keys()[0]
