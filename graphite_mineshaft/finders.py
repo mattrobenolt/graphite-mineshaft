@@ -33,10 +33,15 @@ class MineshaftFinder(object):
 
     def find_nodes(self, query):
         if needs_resolved(query.pattern):
+            search = query.pattern
             if query.pattern == '*':
-                query.search = ''
-            search = query.pattern.rstrip('.*')
-            nodes = self.driver.children(search)
+                search = ''
+            elif query.pattern[-2:] == '.*':
+                search = query.pattern[:-2]
+            if needs_resolved(search):
+                nodes = self.driver.resolve(query.pattern)
+            else:
+                nodes = self.driver.children(search)
             for node in nodes:
                 if node.leaf:
                     yield MineshaftLeafNode(node.key, MineshaftReader(node.key, self))
