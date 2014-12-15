@@ -1,4 +1,5 @@
 from mineshaft import Mineshaft
+from mineshaft import needs_resolved
 
 try:
     from graphite_api.intervals import Interval, IntervalSet
@@ -21,15 +22,26 @@ class MineshaftFinder(object):
     __slots__ = ('driver',)
 
     def __init__(self, config=None):
-        self.driver = Mineshaft(config.get('mineshaft', {}).get('url'))
+        if config is not None:
+            url = config.get('mineshaft', {}).get('url')
+        else:
+            from django.conf import settings
+            url = getattr(settings, 'MINESHAFT_URL')
+        self.driver = Mineshaft(url)
 
     def find_nodes(self, query):
-        nodes = self.driver.resolve(query.pattern)
-        for node in nodes:
-            if node.leaf:
-                yield MineshaftLeafNode(node.key, MineshaftReader(node.key, self))
-            else:
-                yield MineshaftBranchNode(node.key)
+        if needs_resolved(query.pattern):
+            if query.pattern == '*':
+                query.search = ''
+            search = query.pattern.rstrip('.*')
+            nodes = self.driver.children(search)
+            for node in nodes:
+                if node.leaf:
+                    yield MineshaftLeafNode(node.key, MineshaftReader(node.key, self))
+                else:
+                    yield MineshaftBranchNode(node.key)
+        else:
+            yield MineshaftLeafNode(query.pattern, MineshaftReader(query.pattern, self))
 
     def fetch_multi(self, nodes, start_time, end_time):
         step = end_time - start_time
@@ -63,4 +75,6 @@ class MineshaftReader(object):
         return (data['from'], data['to'], data['step']), data['series']
 
     def get_intervals(self):
-        return None
+        start = time.time() - 3600 * 2
+        end = max(start, time.time())
+        return IntervalSet([Interval(start, end)])
