@@ -1,3 +1,5 @@
+import time
+
 from mineshaft import Mineshaft
 from mineshaft import needs_resolved
 
