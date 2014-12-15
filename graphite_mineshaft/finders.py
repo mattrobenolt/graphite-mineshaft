@@ -82,6 +82,7 @@ class MineshaftReader(object):
         return (data['from'], data['to'], data['step']), data['series']
 
     def get_intervals(self):
+        # FIXME: mineshaft server should allow for obtaining this data
         start = time.time() - 3600 * 2
         end = max(start, time.time())
         return IntervalSet([Interval(start, end)])
