@@ -24,7 +24,7 @@ setup(
     description='Graphite backend for Mineshaft',
     license='BSD',
     long_description=long_description,
-    py_modules=['mineshaft'],
+    py_modules=['graphite_mineshaft.finders'],
     install_requires=install_requires,
     zip_safe=True,
     classifiers=[
